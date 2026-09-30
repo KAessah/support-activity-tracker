@@ -1,0 +1,16 @@
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local AI-agent / tooling config (kept on the dev machine, not part of the submission)
+.claude/
+.junie/
+.mcp.json
+AGENTS.md
+CLAUDE.md
+boost.json
+activity-tracker/docker-compose.yml

@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/* Semantic design tokens (NEDCo-style roles, Npontu green brand). */
+:root {
+  --bg-canvas: #f2f2f2;
+  --bg-surface: #ffffff;
+  --bg-surface-muted: #f5f5f5;
+  --bg-surface-row: #f8f8f8;
+
+  --text-strong: #151515;
+  --text-body: #3d3d3d;
+  --text-tertiary: #6f6f6f;
+  --text-placeholder: #a0a0a0;
+
+  --border-hairline: #ececec;
+
+  --status-success-bg: #e8f7ee;
+  --status-success-fg: #157f3b;
+  --status-warning-bg: #fdf1dc;
+  --status-warning-fg: #a15c07;
+  --status-neutral-bg: #e9e9e9;
+  --status-neutral-fg: #555555;
+}
+
+@theme inline {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #eefbf1;
+  --color-brand-100: #d6f5de;
+  --color-brand-200: #a9e8b9;
+  --color-brand-500: #22a447;
+  --color-brand-600: #178a38;
+  --color-brand-700: #146d2f;
+  --color-brand-900: #0d3d1d;
+
+  --color-canvas: var(--bg-canvas);
+  --color-surface: var(--bg-surface);
+  --color-surface-muted: var(--bg-surface-muted);
+  --color-surface-row: var(--bg-surface-row);
+
+  --color-strong: var(--text-strong);
+  --color-body: var(--text-body);
+  --color-tertiary: var(--text-tertiary);
+  --color-placeholder: var(--text-placeholder);
+
+  --color-hairline: var(--border-hairline);
+
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-success-fg: var(--status-success-fg);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-warning-fg: var(--status-warning-fg);
+  --color-status-neutral-bg: var(--status-neutral-bg);
+  --color-status-neutral-fg: var(--status-neutral-fg);
+}
+
+body {
+  background: var(--bg-canvas);
+  color: var(--text-strong);
+}
+
+::selection {
+  background: var(--color-brand-100);
+}

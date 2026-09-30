@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Http\Resources;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/** @mixin User */
+class AuthUserResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'staffId' => $this->staff_id,
+            'phone' => $this->phone,
+            'position' => $this->position,
+            'role' => $this->role?->name,
+            'permissions' => $this->permissionNames(),
+        ];
+    }
+}
