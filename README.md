@@ -1,4 +1,4 @@
-# Npontu: Applications Support Activity Tracker
+# Support Activity Tracker
 
 A system for tracking the daily activities of an applications support team, built as two separate apps:
 
