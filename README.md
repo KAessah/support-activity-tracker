@@ -7,6 +7,19 @@ A system for tracking the daily activities of an applications support team, buil
 | `activity-tracker/` | JSON API | Laravel 13, Sanctum, Postgres (SQLite locally) |
 | `activity-tracker-web/` | Web client | Next.js 16, Tailwind v4, iron-session |
 
+## Live demo
+
+**App:** https://support-activity-tracker-roan.vercel.app  
+**API:** https://npontu-activity-api.onrender.com (health check: [`/up`](https://npontu-activity-api.onrender.com/up))
+
+| Email | Password | Role |
+|---|---|---|
+| `admin@npontu.test` | `password` | Super admin |
+| `ama@npontu.test` | `password` | Admin (team lead) |
+| `kofi@npontu.test` · `efua@npontu.test` · `yaw@npontu.test` | `password` | Support |
+
+The demo is seeded with a sample team and two weeks of activity history.
+
 ## Requirements coverage
 
 1. **Input activities.** The Activities page (admins) lets you create, edit and retire activities such as *Daily SMS count vs SMS count from logs*.
