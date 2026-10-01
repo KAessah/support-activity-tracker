@@ -69,6 +69,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Seeding
+    |--------------------------------------------------------------------------
+    |
+    | Read by DatabaseSeeder. Kept in config (not env() calls in the seeder) so
+    | values still apply after `php artisan config:cache` in production.
+    | `demo` adds the sample team + two weeks of history, useful for a public
+    | demo deployment; it is always on outside production.
+    |
+    */
+
+    'seed' => [
+        'admin_email' => env('ADMIN_EMAIL', 'admin@npontu.test'),
+        'admin_password' => env('ADMIN_PASSWORD', 'password'),
+        'demo' => (bool) env('SEED_DEMO_DATA', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

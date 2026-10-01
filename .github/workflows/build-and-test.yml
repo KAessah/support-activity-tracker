@@ -1,0 +1,72 @@
+name: Build and Test
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_call:
+
+concurrency:
+  group: build-and-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API (Laravel)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: activity-tracker
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Same Dockerfile as production, but with dev dependencies so the
+      # exact image that ships can run PHPUnit.
+      - name: Building docker image
+        run: |
+          docker build \
+            --build-arg COMPOSER_INSTALL_OPTIONS="--optimize-autoloader" \
+            -t activity-tracker-api:ci .
+
+      - name: Run test suite in built image
+        run: |
+          docker run --rm \
+            -e APP_KEY="base64:$(openssl rand -base64 32)" \
+            --entrypoint /var/www/html/vendor/bin/phpunit \
+            activity-tracker-api:ci
+
+  web:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: activity-tracker-web
+    env:
+      # Build-time placeholders only; real values live in Vercel.
+      API_BASE_URL: http://localhost:8000
+      SESSION_PASSWORD: ci-placeholder-session-password-0000000
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: activity-tracker-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npx next typegen && npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Production build
+        run: npm run build

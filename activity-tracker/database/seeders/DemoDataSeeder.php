@@ -8,6 +8,7 @@ use App\Models\ActivityUpdate;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
 
 /**
  * Sample team, activities and two weeks of history so the board and
@@ -44,7 +45,7 @@ class DemoDataSeeder extends Seeder
             'name' => $member[0],
             'staff_id' => $member[2],
             'position' => $member[3],
-            'phone' => '+233 24 '.fake()->numerify('### ####'),
+            'phone' => sprintf('+233 24 %03d %04d', random_int(0, 999), random_int(0, 9999)),
             'role_id' => $roles[$member[4]],
             'password' => 'password',
         ])->load('role'));
@@ -63,7 +64,7 @@ class DemoDataSeeder extends Seeder
             $day = today()->subDays($daysAgo);
 
             foreach ($activities as $activity) {
-                if ($daysAgo === 0 && fake()->boolean(40)) {
+                if ($daysAgo === 0 && $this->chance(40)) {
                     continue;
                 }
 
@@ -74,14 +75,14 @@ class DemoDataSeeder extends Seeder
 
     private function seedDay(Activity $activity, $team, $day, bool $finishPending): void
     {
-        $time = $day->copy()->setTime(8, 0)->addMinutes(fake()->numberBetween(0, 180));
-        $status = fake()->boolean(70) ? ActivityStatus::DONE : ActivityStatus::PENDING;
+        $time = $day->copy()->setTime(8, 0)->addMinutes(random_int(0, 180));
+        $status = $this->chance(70) ? ActivityStatus::DONE : ActivityStatus::PENDING;
 
         $this->record($activity, $team->random(), $day, $status, $time);
 
         // Most pending items get picked up and closed later in the day by someone else (handover).
-        if ($status === ActivityStatus::PENDING && ($finishPending || fake()->boolean(50))) {
-            $this->record($activity, $team->random(), $day, ActivityStatus::DONE, $time->copy()->addHours(fake()->numberBetween(2, 6)));
+        if ($status === ActivityStatus::PENDING && ($finishPending || $this->chance(50))) {
+            $this->record($activity, $team->random(), $day, ActivityStatus::DONE, $time->copy()->addHours(random_int(2, 6)));
         }
     }
 
@@ -94,8 +95,17 @@ class DemoDataSeeder extends Seeder
             'user_id' => $user->id,
             'activity_date' => $day->toDateString(),
             'status' => $status,
-            'remark' => fake()->randomElement(self::REMARKS[$status->value]),
+            'remark' => Arr::random(self::REMARKS[$status->value]),
             'personnel_snapshot' => $user->toPersonnelSnapshot(),
         ])->forceFill(['created_at' => $time, 'updated_at' => $time])->saveQuietly();
+    }
+
+    /**
+     * True roughly $percent% of the time. Plain PHP (not Faker) because Faker
+     * is a dev dependency and this seeder also runs in the production image.
+     */
+    private function chance(int $percent): bool
+    {
+        return random_int(1, 100) <= $percent;
     }
 }

@@ -1,0 +1,18 @@
+name: Keep API Warm
+
+# Render's free web services sleep after 15 minutes idle, and the first request
+# then takes ~30–50s. Pinging the health endpoint keeps the demo responsive.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping /up
+    runs-on: ubuntu-latest
+    if: vars.API_URL != ''
+
+    steps:
+      - name: Ping health endpoint
+        run: curl -fsS --max-time 90 "${{ vars.API_URL }}/up" -o /dev/null -w "HTTP %{http_code}\n"

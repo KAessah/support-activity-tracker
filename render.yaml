@@ -1,0 +1,50 @@
+# Render Blueprint: Laravel API (Docker) + Postgres.
+# Deploys are triggered by GitHub Actions (deploy-production.yml) after tests
+# pass, via the service's deploy hook, so Render's own auto-deploy is off.
+services:
+  - type: web
+    name: npontu-activity-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerContext: ./activity-tracker
+    dockerfilePath: ./activity-tracker/Dockerfile
+    healthCheckPath: /up
+    autoDeployTrigger: "off"
+    envVars:
+      - key: PORT
+        value: "80"
+      - key: APP_NAME
+        value: Support Activity Tracker
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false # paste the output of `php artisan key:generate --show`
+      - key: APP_TIMEZONE
+        value: Africa/Accra
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: npontu-activity-db
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: array
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      # Public demo: seed the sample team + two weeks of history.
+      - key: SEED_DEMO_DATA
+        value: "true"
+
+databases:
+  - name: npontu-activity-db
+    plan: free
+    region: frankfurt
+    databaseName: activity_tracker
+    user: activity_tracker

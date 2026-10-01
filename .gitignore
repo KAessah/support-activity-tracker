@@ -14,3 +14,6 @@ AGENTS.md
 CLAUDE.md
 boost.json
 activity-tracker/docker-compose.yml
+
+# Local API testing (kept on the dev machine)
+postman/

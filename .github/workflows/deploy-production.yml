@@ -1,0 +1,100 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Build and Test
+    uses: ./.github/workflows/build-and-test.yml
+
+  deploy-api:
+    name: Deploy API (Render)
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Trigger Render deploy
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::warning::RENDER_DEPLOY_HOOK_URL is not set; skipping API deploy."
+            exit 0
+          fi
+          curl -fsS -X POST "${RENDER_DEPLOY_HOOK_URL}&ref=${GITHUB_SHA}" -o /dev/null
+          echo "Render deploy triggered for ${GITHUB_SHA}."
+
+      - name: Wait for API to be healthy
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "::notice::API_URL variable is not set; skipping health check."
+            exit 0
+          fi
+          for attempt in $(seq 1 30); do
+            if curl -fs --max-time 60 "$API_URL/up" -o /dev/null; then
+              echo "API is healthy."
+              exit 0
+            fi
+            echo "Waiting for API ($attempt/30)..."
+            sleep 20
+          done
+          echo "::error::API did not become healthy in time."
+          exit 1
+
+  deploy-web:
+    name: Deploy Web (Vercel)
+    needs: deploy-api
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Check Vercel credentials
+        id: creds
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::warning::Vercel secrets are not set; skipping web deploy."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout code
+        if: steps.creds.outputs.ready == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: steps.creds.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Vercel CLI
+        if: steps.creds.outputs.ready == 'true'
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel environment
+        if: steps.creds.outputs.ready == 'true'
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build
+        if: steps.creds.outputs.ready == 'true'
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy
+        if: steps.creds.outputs.ready == 'true'
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
