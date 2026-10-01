@@ -44,29 +44,3 @@ npm run dev
 ```
 
 Open http://localhost:3000 and sign in as `admin@npontu.test` / `password`.
-
-## Deployment
-
-```
-push to main ─▶ Build and Test ─┬─▶ API: Render (Docker + Postgres) ─▶ health check
-                                └─▶ Web: Vercel (Next.js)
-```
-
-| Piece | Where | Config |
-|---|---|---|
-| CI | GitHub Actions | `.github/workflows/build-and-test.yml`: builds the production Docker image with dev deps and runs PHPUnit inside it; lints, type-checks and builds the web app. Runs on every PR. |
-| CD | GitHub Actions | `.github/workflows/deploy-production.yml`: on push to `main`, reruns the tests, then deploys the API (Render deploy hook, pinned to the commit) and the web app (Vercel CLI). |
-| API | Render | `render.yaml` blueprint: Docker web service (`activity-tracker/Dockerfile`, Apache + PHP 8.4) and a Postgres database. The container migrates and seeds (idempotently) on start. |
-| Web | Vercel | `activity-tracker-web/vercel.json`, Frankfurt region next to the API. Git auto-deploys are off, so Actions is the single deploy path. |
-| Warm-up | GitHub Actions | `.github/workflows/keep-alive.yml` pings `/up` every 10 minutes so Render's free tier doesn't sleep. |
-
-**Secrets and variables** (GitHub → Settings → Secrets and variables → Actions):
-
-| Name | Type | Value |
-|---|---|---|
-| `RENDER_DEPLOY_HOOK_URL` | secret | Render service → Settings → Deploy Hook |
-| `VERCEL_TOKEN` | secret | Vercel → Account Settings → Tokens |
-| `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | secret | Vercel project → Settings → General |
-| `API_URL` | variable | e.g. `https://npontu-activity-api.onrender.com` |
-
-Environment on the hosts: Render takes `APP_KEY` (from `php artisan key:generate --show`); everything else is in `render.yaml`. Vercel takes `API_BASE_URL` (the Render URL) and `SESSION_PASSWORD` (32+ random characters).
