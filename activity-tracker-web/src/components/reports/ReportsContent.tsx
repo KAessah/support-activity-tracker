@@ -75,8 +75,11 @@ export function ReportsContent({ data, query }: { data: ReportPageData; query: R
       <section className="mb-4 rounded-2xl bg-surface p-5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="mr-1 text-[13px] text-strong">Period</span>
-          {presets(today).map((p) => {
-            const active = p.from === query.from && p.to === query.to;
+          {presets(today).map((p, i, all) => {
+            // Highlight only the first matching preset: on the 1st of a month,
+            // "Today" and "This month" cover the same range.
+            const matches = (x: { from: string; to: string }) => x.from === query.from && x.to === query.to;
+            const active = matches(p) && all.findIndex(matches) === i;
             return (
               <button
                 key={p.label}
