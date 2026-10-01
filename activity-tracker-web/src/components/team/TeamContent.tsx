@@ -74,7 +74,7 @@ export function TeamContent({ members, counts, roles, query }: TeamPageData & { 
                   </div>
                 </div>
               </Cell>
-              <Cell>{m.staffId}</Cell>
+              <Cell className="whitespace-nowrap">{m.staffId}</Cell>
               <Cell className="whitespace-nowrap">{m.phone ?? "—"}</Cell>
               <Cell><Badge tone="brand">{m.role?.name}</Badge></Cell>
               <Cell className="tabular-nums">{number(m.updatesCount ?? 0)}</Cell>

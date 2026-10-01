@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Form";
 
 const POINTS = [
-  "Mark each activity done or pending, with a remark",
-  "Every update stamped with who made it and when",
-  "Reports across any date range, exportable to CSV",
+  "Know what's done and what's pending at a glance",
+  "Clear accountability for every check",
+  "Smooth handovers between shifts",
 ];
 
 export function LoginContent() {
