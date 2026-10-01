@@ -18,22 +18,41 @@ jobs:
       run:
         working-directory: activity-tracker
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      # Same Dockerfile as production, but with dev dependencies so the
-      # exact image that ships can run PHPUnit.
       - name: Building docker image
         run: |
           docker build \
             --build-arg COMPOSER_INSTALL_OPTIONS="--optimize-autoloader" \
             -t activity-tracker-api:ci .
 
-      - name: Run test suite in built image
+      - name: Run test suite in built image (Postgres)
         run: |
-          docker run --rm \
+          docker run --rm --network host \
             -e APP_KEY="base64:$(openssl rand -base64 32)" \
+            -e DB_CONNECTION=pgsql \
+            -e DB_HOST=127.0.0.1 \
+            -e DB_PORT=5432 \
+            -e DB_DATABASE=testing \
+            -e DB_USERNAME=postgres \
+            -e DB_PASSWORD=postgres \
             --entrypoint /var/www/html/vendor/bin/phpunit \
             activity-tracker-api:ci
 
@@ -44,7 +63,6 @@ jobs:
       run:
         working-directory: activity-tracker-web
     env:
-      # Build-time placeholders only; real values live in Vercel.
       API_BASE_URL: http://localhost:8000
       SESSION_PASSWORD: ci-placeholder-session-password-0000000
 

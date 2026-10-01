@@ -27,13 +27,9 @@ class UserService
 
     public function counts(): array
     {
-        $row = User::query()
-            ->selectRaw('COUNT(*) as total')
-            ->selectRaw('SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active')
-            ->toBase()
-            ->first();
+        $active = User::query()->active()->count();
 
-        return ['active' => (int) $row->active, 'inactive' => (int) $row->total - (int) $row->active];
+        return ['active' => $active, 'inactive' => User::query()->count() - $active];
     }
 
     public function options(): Collection
